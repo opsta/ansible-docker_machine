@@ -1,0 +1,21 @@
+---
+- block: # Create Docker Machine
+
+  - name: Remove Docker Machine
+    command: docker-machine rm -f {{ inventory_hostname }}
+    delegate_to: 127.0.0.1
+    when: docker_machine_host_check.stat.exists and docker_machine_remove
+
+  - name: Create Docker Machine
+    command: |
+      docker-machine create --driver generic
+      --generic-ssh-user {{ ansible_user }}
+      --generic-ip-address {{ ansible_host }}
+      --generic-ssh-port {{ ansible_port }}
+      {{ docker_machine_extra_parameters|default('') }}
+      {{ inventory_hostname }}
+    delegate_to: 127.0.0.1
+    when: not docker_machine_host_check.stat.exists or docker_machine_remove
+
+  tags:
+    - docker-machine-create
